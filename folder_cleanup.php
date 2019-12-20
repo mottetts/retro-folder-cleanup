@@ -12,6 +12,7 @@ $dir = "C:\\Users\\MoteC\\Desktop\\RESTAMP_FOLDER";
 
 function folder_cleanup($dir){
 
+	echo "\nBeginning folder cleanup...";
 	$handle=@opendir($dir) or die("\nError: cannot open $dir");
 	readdir($handle);	//.
 	readdir($handle);	//..
@@ -23,13 +24,13 @@ function folder_cleanup($dir){
 	$fhandle = fopen($file_log,'a+');
 	echo "\nWriting file log to $file_log ... ";
 
-	$i = 0; $j = 0; //$i: count files; $j: count subfolders
+	$i = 0; $j = 0; //$i: count files, $j: count subfolders
 	//loop through all files in the directory
 	while(true){
 
 		$entry = readdir($handle);
 		if(false!==($entry)){
-			//create subfolder
+			//create subfolder (remove "./TEST/" for live run)
 			$subfolder = "./TEST/".substr($entry,0,4);
 			if(!is_dir($subfolder)){
 				mkdir($subfolder);
@@ -41,28 +42,22 @@ function folder_cleanup($dir){
 			$source = $dir . "/" . $entry;
 			$dest = $subfolder . "/" . $entry;
 
-			//copy to new folder and delete from current folder (NOTE: replace with 'rename' function after testing)
-			if(copy($source, $dest)){
-				fwrite($fhandle,"\nFile $source copied to $dest ...");
+			//move to new folder and delete from current folder
+			if(rename($source, $dest)){
+				fwrite($fhandle,"\nFile $source moved to $dest ...");
 				$i++;
-				if(unlink($source)){	//careful! this will delete the original file
-					fwrite($fhandle,"\nDeleted original file $source");
-				} else{
-					fwrite($fhandle,"\nWarning: failed to delete $source");
-				}
 			} else{
-				echo fwrite($fhandle,"\nWarning: failed to copy $source to $dest ...");
+				fwrite($fhandle,"\nWarning: failed to move $source to $dest ...");
 			}
 
 		}else{
+			fwrite($fhandle,"\nUpper file limit reached. $i files successfully moved into $j subfolders.");
 			fclose($fhandle);
 			exit("\nUpper file limit reached. $i files successfully moved into $j subfolders.");
 		}
 	}
 }
 
-
-echo "\nBeginning folder cleanup...";
 folder_cleanup($dir);
-echo "\nDONE";
+
 ?>
